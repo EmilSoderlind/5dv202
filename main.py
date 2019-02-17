@@ -4,6 +4,10 @@ import random
 import psycopg2
 import DB_config
 
+root = Tk("CRUD CLIENT")
+root.geometry('1000x700')
+
+
 # Latest parse of programs/broadcast entries
 DB_entries_program = {}
 DB_entries_broadcast = {}
@@ -153,9 +157,6 @@ def updateTableWithList(list):
 
 
 # V----- CREATING GUI -------V
-
-root = Tk("CRUD CLIENT")
-root.geometry('1000x700')
 
 # Create and grid the outer content frame
 c = ttk.Frame(root, padding=(10, 10, 24, 0))
