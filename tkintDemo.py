@@ -8,7 +8,41 @@ root = Tk("CRUD CLIENT")
 root.geometry('1000x700')
 
 
-DB_entries = {}
+# Latest parse of programs/broadcast entries
+DB_entries_program = {}
+DB_entries_broadcast = {}
+
+
+# ADD / UPDATE broadcast
+def addingBroadcast(id,name,etc,etc2):
+
+    # CHECK IF ID exist --> Update
+
+    # Otherwise VVV
+    # SQL
+    print("Adding broadcast")
+
+# ADD / UPDATE program
+def addingProgram(id,name,etc,etc2):
+
+    # CHECK IF ID exist --> Update
+
+    # Otherwise VVV
+
+    # SQL
+    print("Adding program")
+
+def deleteBroadcastWithID(id):
+    # SQL HERE
+    print("deleting broadcast with ID")
+
+def deleteProgramWithID(id):
+    # SQL HERE
+    print("deleting program with ID")
+
+def parseDBEntries_broadcast():
+    # SQL
+    print("parsing broadcastsss")
 
 def parseDBEntries_program():
     try:
@@ -59,7 +93,7 @@ populations = {'ar':41000000, 'au':21179211, 'be':10584534, 'br':185971537, \
         'no':4738085, 'es':45116894, 'se':9174082, 'ch':7508700}
 
 # Names of the gifts we can send
-gifts = { 'card':'Greeting card', 'flowers':'Flowers', 'nastygram':'Nastygram'}
+gifts = { 'card':'Delete', 'flowers':'Update'}
 
 # State variables
 gift = StringVar()
@@ -90,8 +124,9 @@ def showPopulation(*args):
 # Figure out which country is selected, which gift is selected with the
 # radiobuttons, "send the gift", and provide feedback that it was sent.
 def sendGift(*args):
+    viewBroadcastInTable()
 
-    print("selected: ")
+    print("selected: ", lbox.curselection())
 
     send["text"] = str(random.randint(1, 1000))
     idxs = lbox.curselection()
@@ -106,16 +141,21 @@ def sendGift(*args):
 
 # Perform parse of program in DB and fill table
 def viewProgramInTable():
-    lbox.delete(0, 'end')
-    for item in {"ID programnamn1", "ID programnamn2", "ID programnamn3"}:
-        lbox.insert('end', item)
+    updateTableWithList({"ID programnamn1", "ID programnamn2", "ID programnamn3"})
 
 # Perform parse of broadcast in DB and fill table
 def viewBroadcastInTable():
+    updateTableWithList({"ID broadcast1", "ID broadcast2", "ID broadcast3"})
+
+# Called to change content of table with invoked list
+def updateTableWithList(list):
     lbox.delete(0, 'end')
-    for item in {"ID broadcast1", "ID broadcast2", "ID broadcast3"}:
+    for item in list:
         lbox.insert('end', item)
 
+    # Colorize alternating lines of the listbox
+    for i in range(0, len(list), 2):
+        lbox.itemconfigure(i, background='#f0f0ff')
 
 # Create and grid the outer content frame
 c = ttk.Frame(root, padding=(10, 10, 24, 0))
@@ -127,12 +167,12 @@ root.grid_rowconfigure(0,weight=1)
 # of them are bound to, as well as the button callback.
 # Note we're using the StringVar() 'cnames', constructed from 'countrynames'
 lbox = Listbox(c, listvariable=cnames, height=7)
-lbl = ttk.Label(c, text="Send to country's leader:")
+lbl = ttk.Label(c, text="Manipulate database (selected):")
 g1 = ttk.Radiobutton(c, text=gifts['card'], variable=gift, value='card')
 g2 = ttk.Radiobutton(c, text=gifts['flowers'], variable=gift, value='flowers')
-g3 = ttk.Radiobutton(c, text=gifts['nastygram'], variable=gift, value='nastygram')
 sentlbl = ttk.Label(c, textvariable=sentmsg, anchor='center')
-status = ttk.Label(c, textvariable=statusmsg, anchor=W)
+viewProgramsBtn = ttk.Button(c, text='View Programs')
+viewBroadcastsBtn = ttk.Button(c, text='View Broadcasts')
 send = ttk.Button(c, text='Send Gift', command=sendGift, default='active')
 
 
@@ -141,10 +181,10 @@ lbox.grid(column=0, row=0, rowspan=6, sticky=(N,S,E,W))
 lbl.grid(column=1, row=0, padx=10, pady=5)
 g1.grid(column=1, row=1, sticky=W, padx=20)
 g2.grid(column=1, row=2, sticky=W, padx=20)
-g3.grid(column=1, row=3, sticky=W, padx=20)
 send.grid(column=2, row=4, sticky=E, pady=15)
 sentlbl.grid(column=1, row=5, columnspan=2, sticky=N, pady=5, padx=5)
-status.grid(column=0, row=6, columnspan=2, sticky=(W,E))
+viewProgramsBtn.grid(column=1, row=6, columnspan=1)
+viewBroadcastsBtn.grid(column=2, row=6, columnspan=1)
 c.grid_columnconfigure(0, weight=1)
 c.grid_rowconfigure(5, weight=1)
 
@@ -153,10 +193,6 @@ c.grid_rowconfigure(5, weight=1)
 lbox.bind('<<ListboxSelect>>', showPopulation)
 lbox.bind('<Double-1>', sendGift)
 root.bind('<Return>', sendGift)
-
-# Colorize alternating lines of the listbox
-for i in range(0,len(countrynames),2):
-    lbox.itemconfigure(i, background='#f0f0ff')
 
 # Set the starting state of the interface, including selecting the
 # default gift to send, and clearing the messages.  Select the first
