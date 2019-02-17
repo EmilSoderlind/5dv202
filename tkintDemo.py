@@ -92,8 +92,6 @@ populations = {'ar':41000000, 'au':21179211, 'be':10584534, 'br':185971537, \
         'in':1131043000, 'it':59206382, 'jp':127718000, 'mx':106535000, 'nl':16402414, \
         'no':4738085, 'es':45116894, 'se':9174082, 'ch':7508700}
 
-# Names of the gifts we can send
-gifts = { 'card':'Delete', 'flowers':'Update'}
 
 # State variables
 gift = StringVar()
@@ -168,12 +166,15 @@ root.grid_rowconfigure(0,weight=1)
 # Note we're using the StringVar() 'cnames', constructed from 'countrynames'
 lbox = Listbox(c, listvariable=cnames, height=7)
 lbl = ttk.Label(c, text="Manipulate database (selected):")
-g1 = ttk.Radiobutton(c, text=gifts['card'], variable=gift, value='card')
-g2 = ttk.Radiobutton(c, text=gifts['flowers'], variable=gift, value='flowers')
+
+g1 = ttk.Radiobutton(c, text="Delete (selected)", variable=gift, value='delete')
+g2 = ttk.Radiobutton(c, text="Update (selected)", variable=gift, value='update')
+g3 = ttk.Radiobutton(c, text="Add new entry", variable=gift, value='add')
+
 sentlbl = ttk.Label(c, textvariable=sentmsg, anchor='center')
 viewProgramsBtn = ttk.Button(c, text='View Programs')
 viewBroadcastsBtn = ttk.Button(c, text='View Broadcasts')
-send = ttk.Button(c, text='Send Gift', command=sendGift, default='active')
+send = ttk.Button(c, text='Perform', command=sendGift, default='active')
 
 
 # Grid all the widgets
@@ -181,6 +182,7 @@ lbox.grid(column=0, row=0, rowspan=6, sticky=(N,S,E,W))
 lbl.grid(column=1, row=0, padx=10, pady=5)
 g1.grid(column=1, row=1, sticky=W, padx=20)
 g2.grid(column=1, row=2, sticky=W, padx=20)
+g3.grid(column=1, row=3, sticky=W, padx=20)
 send.grid(column=2, row=4, sticky=E, pady=15)
 sentlbl.grid(column=1, row=5, columnspan=2, sticky=N, pady=5, padx=5)
 viewProgramsBtn.grid(column=1, row=6, columnspan=1)
