@@ -4,10 +4,6 @@ import random
 import psycopg2
 import DB_config
 
-root = Tk("CRUD CLIENT")
-root.geometry('1000x700')
-
-
 # Latest parse of programs/broadcast entries
 DB_entries_program = {}
 DB_entries_broadcast = {}
@@ -155,6 +151,12 @@ def updateTableWithList(list):
     for i in range(0, len(list), 2):
         lbox.itemconfigure(i, background='#f0f0ff')
 
+
+# V----- CREATING GUI -------V
+
+root = Tk("CRUD CLIENT")
+root.geometry('1000x700')
+
 # Create and grid the outer content frame
 c = ttk.Frame(root, padding=(10, 10, 24, 0))
 c.grid(column=0, row=0, sticky=(N,W,E,S))
@@ -195,6 +197,10 @@ c.grid_rowconfigure(5, weight=1)
 lbox.bind('<<ListboxSelect>>', showPopulation)
 lbox.bind('<Double-1>', sendGift)
 root.bind('<Return>', sendGift)
+
+
+# ^----- CREATING GUI -------^
+
 
 # Set the starting state of the interface, including selecting the
 # default gift to send, and clearing the messages.  Select the first
