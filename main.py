@@ -1,5 +1,4 @@
 
-
 from tkinter import *
 from tkinter import ttk
 import random
@@ -18,7 +17,7 @@ DB_entries_broadcast = {"ID broadcast1", "ID broadcast2", "ID broadcast3"}
 currentTable = ""
 
 # ADD / UPDATE broadcast
-def addingBroadcast(id,name,etc,etc2):
+def addingBroadcast(id ,name ,etc ,etc2):
 
     # CHECK IF ID exist --> Update
 
@@ -27,7 +26,7 @@ def addingBroadcast(id,name,etc,etc2):
     print("Adding broadcast")
 
 # ADD / UPDATE program
-def addingProgram(id,name,etc,etc2):
+def addingProgram(id ,name ,etc ,etc2):
 
     # CHECK IF ID exist --> Update
 
@@ -57,8 +56,8 @@ def parseDBEntries_program():
     print("parsed programs!")
 
 
-def parseDBEntries(tableName):
-    return performSqlQuery("SELECT * FROM {};".format(tableName))
+def parseDBEntries(table_name):
+    return performSqlQuery("SELECT * FROM {};".format(table_name))
 
 
 def performSqlQuery(query):
@@ -106,9 +105,11 @@ def performAction(*args):
 
         if(radioButtonVal.get() == "add"):
             print("add in ", currentTable)
+            presentPopup("")
 
         if (radioButtonVal.get() == "update"):
             print("update in ", currentTable)
+            presentPopup(DB_entries_program[lbox.curselection()[0]])
 
         if (radioButtonVal.get() == "delete"):
             print("Delete in ", currentTable)
@@ -118,13 +119,15 @@ def performAction(*args):
 
         if (radioButtonVal.get() == "add"):
             print("add in ", currentTable)
+            presentPopup("")
 
         if (radioButtonVal.get() == "update"):
             print("update in ", currentTable)
+            presentPopup(DB_entries_broadcast[lbox.curselection()[0]])
 
         if (radioButtonVal.get() == "delete"):
             print("Delete in ", currentTable)
-            print("selected: ", DB_entries_program[lbox.curselection()[0]])
+            print("selected: ", DB_entries_broadcast[lbox.curselection()[0]])
 
 # Perform parse of program in DB and fill table
 def viewProgramInTable(*args):
@@ -159,7 +162,10 @@ def updateTableWithList(list):
 
     lbox.delete(0, 'end')
     for item in list:
-        lbox.insert('end', str(item[0]) + " | " + str(item[1]) + " | " + str(item[2]))
+        outStr = ""
+        for field in item:
+            outStr += " |   " + str(field)
+        lbox.insert('end', outStr)
 
     # Colorize alternating lines of the listbox
     for i in range(0, len(list), 2):
@@ -209,9 +215,9 @@ def setRadioButtonToUpdate():
 
 # Create and grid the outer content frame
 c = ttk.Frame(root, padding=(10, 10, 24, 0))
-c.grid(column=0, row=0, sticky=(N,W,E,S))
+c.grid(column=0, row=0, sticky=(N ,W ,E ,S))
 root.grid_columnconfigure(0, weight=1)
-root.grid_rowconfigure(0,weight=1)
+root.grid_rowconfigure(0 ,weight=1)
 
 # Create the different widgets; note the variables that many
 # of them are bound to, as well as the button callback.
@@ -223,14 +229,14 @@ g1 = ttk.Radiobutton(c, text="Delete (selected)", variable=radioButtonVal, value
 g2 = ttk.Radiobutton(c, text="Update (selected)", variable=radioButtonVal, value='update')
 g3 = ttk.Radiobutton(c, text="Add new entry", variable=radioButtonVal, value='add')
 
-#sentlbl = ttk.Label(c, textvariable=sentmsg, anchor='center')
+# sentlbl = ttk.Label(c, textvariable=sentmsg, anchor='center')
 viewProgramsBtn = ttk.Button(c, text='View Programs', command=viewProgramInTable)
 viewBroadcastsBtn = ttk.Button(c, text='View Broadcasts', command=viewBroadcastInTable)
 send = ttk.Button(c, text='Perform', command=performAction, default='active')
 
 
 # Grid all the widgets
-lbox.grid(column=0, row=0, rowspan=6, sticky=(N,S,E,W))
+lbox.grid(column=0, row=0, rowspan=6, sticky=(N ,S ,E ,W))
 lbl.grid(column=1, row=0, padx=10, pady=5)
 g1.grid(column=1, row=1, sticky=W, padx=20)
 g2.grid(column=1, row=2, sticky=W, padx=20)
@@ -260,5 +266,3 @@ root.mainloop()
 
 
 # PARSE BOTH
-
-
