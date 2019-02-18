@@ -5,6 +5,8 @@ from tkinter import ttk
 import random
 import psycopg2
 import DB_config
+from easygui import *
+import time
 
 root = Tk()
 root.geometry('1000x700')
@@ -42,11 +44,19 @@ def deleteProgramWithID(id):
     # SQL HERE
     print("deleting program with ID")
 
-def parseDBEntries_broadcast():
-    # SQL
-    print("parsing broadcastsss")
 
+def parseDBEntries_broadcast():
+    global DB_entries_broadcast
+    DB_entries_broadcast = parseDBEntries("broadcast")
+    print("parsed broadcasts!")
+
+# fetching programs -> Save in DB_entries_program
 def parseDBEntries_program():
+    global DB_entries_program
+    DB_entries_program = parseDBEntries("program")
+    print("parsed programs!")
+
+def parseDBEntries(tableName):
 
     try:
         connection = psycopg2.connect(user=DB_config.user,
@@ -55,17 +65,14 @@ def parseDBEntries_program():
                                   port=DB_config.port,
                                   database=DB_config.database)
 
+        connection.set_client_encoding('UTF8')
         cursor = connection.cursor()
 
-        # Print PostgreSQL Connection properties
-        print(connection.get_dsn_parameters(), "\n")
         # Print PostgreSQL version
-        cursor.execute("SELECT name FROM program;")
+        cursor.execute("SELECT * FROM {};".format(tableName))
+        record = cursor.fetchall()
 
-        record = cursor.fetchone()
-
-        print("You are connected to - ", str(record), "\n")
-
+        return record
 
     except (Exception, psycopg2.Error) as error:
 
@@ -124,7 +131,11 @@ def showPopulation(*args):
 # Figure out which country is selected, which gift is selected with the
 # radiobuttons, "send the gift", and provide feedback that it was sent.
 def sendGift(*args):
-    viewBroadcastInTable()
+
+    presentPopup(True, DB_entries_program[0])
+    presentPopup(True, "")
+    presentPopup(False, DB_entries_broadcast[0])
+    presentPopup(False, "")
 
     print("selected: ", lbox.curselection())
 
@@ -140,28 +151,56 @@ def sendGift(*args):
 
 
 # Perform parse of program in DB and fill table
-def viewProgramInTable():
-
+def viewProgramInTable(*args):
     parseDBEntries_program()
-
     updateTableWithList(DB_entries_program)
 
 # Perform parse of broadcast in DB and fill table
-def viewBroadcastInTable():
+def viewBroadcastInTable(*args):
+    parseDBEntries_broadcast()
     updateTableWithList(DB_entries_broadcast)
 
 # Called to change content of table with invoked list
 def updateTableWithList(list):
 
+    print("list[0]", list[0])
+
     lbox.delete(0, 'end')
     for item in list:
-        lbox.insert('end', item)
+        lbox.insert('end', str(item[0]) + " | " + str(item[1]) + " | " + str(item[2]))
 
     # Colorize alternating lines of the listbox
     for i in range(0, len(list), 2):
         lbox.itemconfigure(i, background='#f0f0ff')
 
+# program = true if program fields otherwise broadcast
+# oldEntry = if we are about to update old entry. Contains old entry:s fields.
+def presentPopup(program,oldEntry):
 
+    if(program):
+
+        programFieldNames = ["Id", "Name", "Tagline", "Email", "Url", "Editor", "Channel", "Category"]
+
+        if(oldEntry != ""):
+            fieldValues = [str(oldEntry[0]), str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]), str(oldEntry[5]), str(oldEntry[6]), str(oldEntry[7])]  # the starting values
+            fieldValues = multenterbox("UPDATE PROGRAM", "UPDATE PROGRAM", programFieldNames, fieldValues)
+        else:
+            fieldValues = multenterbox("ADD PROGRAM", "ADD PROGRAM", programFieldNames)
+
+        print(fieldValues)
+
+    else:
+
+        broadcastFieldNames = ["Id", "Program", "Tagline", "Date", "Duration", "Image_url"]
+
+        if (oldEntry != ""):
+            fieldValues = [str(oldEntry[0]), str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]), str(oldEntry[5])]  # the starting values
+            fieldValues = multenterbox("UPDATE BROADCAST", "UPDATE BROADCAST", broadcastFieldNames, fieldValues)
+        else:
+            fieldValues = multenterbox("ADD BROADCAST", "ADD BROADCAST", broadcastFieldNames)
+
+        print(fieldValues)
+    return fieldValues
 # V----- CREATING GUI -------V
 
 # Create and grid the outer content frame
@@ -181,8 +220,8 @@ g2 = ttk.Radiobutton(c, text="Update (selected)", variable=gift, value='update')
 g3 = ttk.Radiobutton(c, text="Add new entry", variable=gift, value='add')
 
 sentlbl = ttk.Label(c, textvariable=sentmsg, anchor='center')
-viewProgramsBtn = ttk.Button(c, text='View Programs')
-viewBroadcastsBtn = ttk.Button(c, text='View Broadcasts')
+viewProgramsBtn = ttk.Button(c, text='View Programs', command=viewProgramInTable)
+viewBroadcastsBtn = ttk.Button(c, text='View Broadcasts', command=viewBroadcastInTable)
 send = ttk.Button(c, text='Perform', command=sendGift, default='active')
 
 
@@ -220,6 +259,9 @@ lbox.selection_set(0)
 showPopulation()
 
 viewProgramInTable()
+
+parseDBEntries_program()
+parseDBEntries_broadcast()
 
 root.mainloop()
 
