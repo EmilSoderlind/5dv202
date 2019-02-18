@@ -56,8 +56,12 @@ def parseDBEntries_program():
     DB_entries_program = parseDBEntries("program")
     print("parsed programs!")
 
-def parseDBEntries(tableName):
 
+def parseDBEntries(tableName):
+    return performSqlQuery("SELECT * FROM {};".format(tableName))
+
+
+def performSqlQuery(query):
     try:
         connection = psycopg2.connect(user=DB_config.user,
                                   password=DB_config.password,
@@ -69,7 +73,7 @@ def parseDBEntries(tableName):
         cursor = connection.cursor()
 
         # Print PostgreSQL version
-        cursor.execute("SELECT * FROM {};".format(tableName))
+        cursor.execute(query)
         record = cursor.fetchall()
 
         return record
@@ -84,6 +88,7 @@ def parseDBEntries(tableName):
             cursor.close()
             connection.close()
             print("PostgreSQL connection is closed")
+
 
 # State variables
 radioButtonVal = StringVar()
@@ -244,8 +249,7 @@ c.grid_rowconfigure(5, weight=1)
 # country in the list; because the <<ListboxSelect>> event is only
 # generated when the user makes a change, we explicitly call showPopulation.
 radioButtonVal.set("")
-#sentmsg.set('')
-#statusmsg.set('')
+
 lbox.selection_set(0)
 
 viewProgramInTable()
