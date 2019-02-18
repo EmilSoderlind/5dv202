@@ -4,13 +4,14 @@ import random
 import psycopg2
 import DB_config
 
+
 root = Tk("CRUD CLIENT")
 root.geometry('1000x700')
 
 
 # Latest parse of programs/broadcast entries
-DB_entries_program = {}
-DB_entries_broadcast = {}
+DB_entries_program = {"ID programnamn1", "ID programnamn2", "ID programnamn3"}
+DB_entries_broadcast = {"ID broadcast1", "ID broadcast2", "ID broadcast3"}
 
 
 # ADD / UPDATE broadcast
@@ -45,6 +46,8 @@ def parseDBEntries_broadcast():
     print("parsing broadcastsss")
 
 def parseDBEntries_program():
+
+
     try:
         connection = psycopg2.connect(user=DB_config.user,
                                       password=DB_config.password,
@@ -56,7 +59,11 @@ def parseDBEntries_program():
         print (connection.get_dsn_parameters(), "\n")
         # Print PostgreSQL version
         cursor.execute("SELECT * FROM program;")
+        print("after execute")
+
         record = cursor.fetchone()
+        print("after cursor.fetchone")
+
 
         parsedEntries = {}
         print("Created parsedEntries")
@@ -139,14 +146,18 @@ def sendGift(*args):
 
 # Perform parse of program in DB and fill table
 def viewProgramInTable():
-    updateTableWithList({"ID programnamn1", "ID programnamn2", "ID programnamn3"})
+
+    parseDBEntries_program()
+
+    updateTableWithList(DB_entries_program)
 
 # Perform parse of broadcast in DB and fill table
 def viewBroadcastInTable():
-    updateTableWithList({"ID broadcast1", "ID broadcast2", "ID broadcast3"})
+    updateTableWithList(DB_entries_broadcast)
 
 # Called to change content of table with invoked list
 def updateTableWithList(list):
+
     lbox.delete(0, 'end')
     for item in list:
         lbox.insert('end', item)
@@ -167,7 +178,7 @@ root.grid_rowconfigure(0,weight=1)
 # Create the different widgets; note the variables that many
 # of them are bound to, as well as the button callback.
 # Note we're using the StringVar() 'cnames', constructed from 'countrynames'
-lbox = Listbox(c, listvariable=cnames, height=7)
+lbox = Listbox(c, height=7)
 lbl = ttk.Label(c, text="Manipulate database (selected):")
 
 g1 = ttk.Radiobutton(c, text="Delete (selected)", variable=gift, value='delete')
@@ -213,7 +224,11 @@ statusmsg.set('')
 lbox.selection_set(0)
 showPopulation()
 
+viewProgramInTable()
+
 root.mainloop()
 
+
+# PARSE BOTH
 
 
