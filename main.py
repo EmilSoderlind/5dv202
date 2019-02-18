@@ -4,7 +4,7 @@ import random
 import psycopg2
 import DB_config
 
-root = Tk("CRUD CLIENT")
+root = Tk()
 root.geometry('1000x700')
 
 
