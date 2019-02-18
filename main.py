@@ -214,6 +214,3 @@ lbox.selection_set(0)
 showPopulation()
 
 root.mainloop()
-
-
-
