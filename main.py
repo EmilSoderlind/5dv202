@@ -15,7 +15,7 @@ root.geometry('1000x700')
 # Latest parse of programs/broadcast entries
 DB_entries_program = {"ID programnamn1", "ID programnamn2", "ID programnamn3"}
 DB_entries_broadcast = {"ID broadcast1", "ID broadcast2", "ID broadcast3"}
-
+currentTable = ""
 
 # ADD / UPDATE broadcast
 def addingBroadcast(id,name,etc,etc2):
@@ -85,44 +85,8 @@ def parseDBEntries(tableName):
             connection.close()
             print("PostgreSQL connection is closed")
 
-
-# Initialize our country "databases":
-#  - the list of country codes (a subset anyway)
-#  - a parallel list of country names, in the same order as the country codes
-#  - a hash table mapping country code to population<
-countrycodes = ('ar', 'au', 'be', 'br', 'ca', 'cn', 'dk', 'fi', 'fr', 'gr', 'in', 'it', 'jp', 'mx', 'nl', 'no', 'es', 'se', 'ch')
-countrynames = ('Argentina', 'Australia', 'Belgium', 'Brazil', 'Canada', 'China', 'Denmark', \
-        'Finland', 'France', 'Greece', 'India', 'Italy', 'Japan', 'Mexico', 'Netherlands', 'Norway', 'Spain', \
-        'Sweden', 'Switzerland')
-
-cnames = StringVar(value=countrynames)
-populations = {'ar':41000000, 'au':21179211, 'be':10584534, 'br':185971537, \
-        'ca':33148682, 'cn':1323128240, 'dk':5457415, 'fi':5302000, 'fr':64102140, 'gr':11147000, \
-        'in':1131043000, 'it':59206382, 'jp':127718000, 'mx':106535000, 'nl':16402414, \
-        'no':4738085, 'es':45116894, 'se':9174082, 'ch':7508700}
-
-
 # State variables
-gift = StringVar()
-sentmsg = StringVar()
-statusmsg = StringVar()
-
-
-# Called when the selection in the listbox changes; figure out
-# which country is currently selected, and then lookup its country
-# code, and from that, its population.  Update the status message
-# with the new population.  As well, clear the message about the
-# gift being sent, so it doesn't stick around after we start doing
-# other things.
-def showPopulation(*args):
-    idxs = lbox.curselection()
-    if len(idxs)==1:
-        idx = int(idxs[0])
-        code = countrycodes[idx]
-        name = countrynames[idx]
-        popn = populations[code]
-        statusmsg.set("The population of %s (%s) is %d" % (name, code, popn))
-    sentmsg.set('')
+radioButtonVal = StringVar()
 
 # Called when the user double clicks an item in the listbox, presses
 # the "Send Gift" button, or presses the Return key.  In case the selected
@@ -130,35 +94,58 @@ def showPopulation(*args):
 #
 # Figure out which country is selected, which gift is selected with the
 # radiobuttons, "send the gift", and provide feedback that it was sent.
-def sendGift(*args):
+def performAction(*args):
+    global currentTable
 
-    presentPopup(True, DB_entries_program[0])
-    presentPopup(True, "")
-    presentPopup(False, DB_entries_broadcast[0])
-    presentPopup(False, "")
+    if(currentTable == "program"):
 
-    print("selected: ", lbox.curselection())
+        if(radioButtonVal.get() == "add"):
+            print("add in ", currentTable)
 
-    send["text"] = str(random.randint(1, 1000))
-    idxs = lbox.curselection()
-    if len(idxs)==1:
-        idx = int(idxs[0])
-        lbox.see(idx)
-        name = countrynames[idx]
-        # Gift sending left as an exercise to the reader
-        sentmsg.set("Sent %s to leader of %s" % (gifts[gift.get()], name))
+        if (radioButtonVal.get() == "update"):
+            print("update in ", currentTable)
 
+        if (radioButtonVal.get() == "delete"):
+            print("Delete in ", currentTable)
+            print("selected: ", DB_entries_program[lbox.curselection()[0]])
 
+    elif(currentTable == "broadcast"):
+
+        if (radioButtonVal.get() == "add"):
+            print("add in ", currentTable)
+
+        if (radioButtonVal.get() == "update"):
+            print("update in ", currentTable)
+
+        if (radioButtonVal.get() == "delete"):
+            print("Delete in ", currentTable)
+            print("selected: ", DB_entries_program[lbox.curselection()[0]])
 
 # Perform parse of program in DB and fill table
 def viewProgramInTable(*args):
+    global currentTable
+
+    if(currentTable == "program"):
+        return
+
+    viewProgramsBtn["state"] = "disabled"
     parseDBEntries_program()
     updateTableWithList(DB_entries_program)
+    currentTable = "program"
+    viewBroadcastsBtn["state"] = "enabled"
 
 # Perform parse of broadcast in DB and fill table
 def viewBroadcastInTable(*args):
+    global currentTable
+
+    if(currentTable == "broadcast"):
+        return
+
+    viewBroadcastsBtn["state"] = "disabled"
     parseDBEntries_broadcast()
     updateTableWithList(DB_entries_broadcast)
+    currentTable = "broadcast"
+    viewProgramsBtn["state"] = "enabled"
 
 # Called to change content of table with invoked list
 def updateTableWithList(list):
@@ -173,16 +160,17 @@ def updateTableWithList(list):
     for i in range(0, len(list), 2):
         lbox.itemconfigure(i, background='#f0f0ff')
 
-# program = true if program fields otherwise broadcast
 # oldEntry = if we are about to update old entry. Contains old entry:s fields.
-def presentPopup(program,oldEntry):
+def presentPopup(oldEntry):
+    global currentTable
 
-    if(program):
+    if(currentTable == "program"):
 
         programFieldNames = ["Id", "Name", "Tagline", "Email", "Url", "Editor", "Channel", "Category"]
 
         if(oldEntry != ""):
-            fieldValues = [str(oldEntry[0]), str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]), str(oldEntry[5]), str(oldEntry[6]), str(oldEntry[7])]  # the starting values
+            fieldValues = [str(oldEntry[0]), str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]),
+                           str(oldEntry[5]), str(oldEntry[6]), str(oldEntry[7])]
             fieldValues = multenterbox("UPDATE PROGRAM", "UPDATE PROGRAM", programFieldNames, fieldValues)
         else:
             fieldValues = multenterbox("ADD PROGRAM", "ADD PROGRAM", programFieldNames)
@@ -194,13 +182,24 @@ def presentPopup(program,oldEntry):
         broadcastFieldNames = ["Id", "Program", "Tagline", "Date", "Duration", "Image_url"]
 
         if (oldEntry != ""):
-            fieldValues = [str(oldEntry[0]), str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]), str(oldEntry[5])]  # the starting values
+            fieldValues = [str(oldEntry[0]), str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]),
+                           str(oldEntry[5])]
             fieldValues = multenterbox("UPDATE BROADCAST", "UPDATE BROADCAST", broadcastFieldNames, fieldValues)
         else:
             fieldValues = multenterbox("ADD BROADCAST", "ADD BROADCAST", broadcastFieldNames)
 
         print(fieldValues)
     return fieldValues
+
+def setRadioButtonToAdd():
+    radioButtonVal.set('add')
+
+def setRadioButtonToDelete():
+    radioButtonVal.set('delete')
+
+def setRadioButtonToUpdate():
+    radioButtonVal.set('update')
+
 # V----- CREATING GUI -------V
 
 # Create and grid the outer content frame
@@ -215,14 +214,14 @@ root.grid_rowconfigure(0,weight=1)
 lbox = Listbox(c, height=7)
 lbl = ttk.Label(c, text="Manipulate database (selected):")
 
-g1 = ttk.Radiobutton(c, text="Delete (selected)", variable=gift, value='delete')
-g2 = ttk.Radiobutton(c, text="Update (selected)", variable=gift, value='update')
-g3 = ttk.Radiobutton(c, text="Add new entry", variable=gift, value='add')
+g1 = ttk.Radiobutton(c, text="Delete (selected)", variable=radioButtonVal, value='delete')
+g2 = ttk.Radiobutton(c, text="Update (selected)", variable=radioButtonVal, value='update')
+g3 = ttk.Radiobutton(c, text="Add new entry", variable=radioButtonVal, value='add')
 
-sentlbl = ttk.Label(c, textvariable=sentmsg, anchor='center')
+#sentlbl = ttk.Label(c, textvariable=sentmsg, anchor='center')
 viewProgramsBtn = ttk.Button(c, text='View Programs', command=viewProgramInTable)
 viewBroadcastsBtn = ttk.Button(c, text='View Broadcasts', command=viewBroadcastInTable)
-send = ttk.Button(c, text='Perform', command=sendGift, default='active')
+send = ttk.Button(c, text='Perform', command=performAction, default='active')
 
 
 # Grid all the widgets
@@ -232,18 +231,10 @@ g1.grid(column=1, row=1, sticky=W, padx=20)
 g2.grid(column=1, row=2, sticky=W, padx=20)
 g3.grid(column=1, row=3, sticky=W, padx=20)
 send.grid(column=2, row=4, sticky=E, pady=15)
-sentlbl.grid(column=1, row=5, columnspan=2, sticky=N, pady=5, padx=5)
 viewProgramsBtn.grid(column=1, row=6, columnspan=1)
 viewBroadcastsBtn.grid(column=2, row=6, columnspan=1)
 c.grid_columnconfigure(0, weight=1)
 c.grid_rowconfigure(5, weight=1)
-
-# Set event bindings for when the selection in the listbox changes,
-# when the user double clicks the list, and when they hit the Return key
-lbox.bind('<<ListboxSelect>>', showPopulation)
-lbox.bind('<Double-1>', sendGift)
-root.bind('<Return>', sendGift)
-
 
 # ^----- CREATING GUI -------^
 
@@ -252,16 +243,14 @@ root.bind('<Return>', sendGift)
 # default gift to send, and clearing the messages.  Select the first
 # country in the list; because the <<ListboxSelect>> event is only
 # generated when the user makes a change, we explicitly call showPopulation.
-gift.set('card')
-sentmsg.set('')
-statusmsg.set('')
+radioButtonVal.set("")
+#sentmsg.set('')
+#statusmsg.set('')
 lbox.selection_set(0)
-showPopulation()
 
 viewProgramInTable()
 
 parseDBEntries_program()
-parseDBEntries_broadcast()
 
 root.mainloop()
 
