@@ -4,8 +4,7 @@ import random
 import psycopg2
 import DB_config
 
-
-root = Tk("CRUD CLIENT")
+root = Tk()
 root.geometry('1000x700')
 
 
@@ -46,8 +45,6 @@ def parseDBEntries_broadcast():
     print("parsing broadcastsss")
 
 def parseDBEntries_program():
-
-
     try:
         connection = psycopg2.connect(user=DB_config.user,
                                       password=DB_config.password,
