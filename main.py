@@ -1,3 +1,5 @@
+
+
 from tkinter import *
 from tkinter import ttk
 import random
@@ -45,36 +47,32 @@ def parseDBEntries_broadcast():
     print("parsing broadcastsss")
 
 def parseDBEntries_program():
+
     try:
         connection = psycopg2.connect(user=DB_config.user,
-                                      password=DB_config.password,
-                                      host=DB_config.host,
-                                      port=DB_config.port,
-                                      database=DB_config.database)
+                                  password=DB_config.password,
+                                  host=DB_config.host,
+                                  port=DB_config.port,
+                                  database=DB_config.database)
+
         cursor = connection.cursor()
+
         # Print PostgreSQL Connection properties
-        print (connection.get_dsn_parameters(), "\n")
+        print(connection.get_dsn_parameters(), "\n")
         # Print PostgreSQL version
-        cursor.execute("SELECT * FROM program;")
-        print("after execute")
+        cursor.execute("SELECT name FROM program;")
 
         record = cursor.fetchone()
-        print("after cursor.fetchone")
 
+        print("You are connected to - ", str(record), "\n")
 
-        parsedEntries = {}
-        print("Created parsedEntries")
-        for entry in record:
-            print("Filling parsedEntries")
-            parsedEntries += entry[0] + " " + entry[1]
-
-        print("Returning parsedEntries")
-        return parsedEntries
 
     except (Exception, psycopg2.Error) as error:
+
         print ("Error while connecting to PostgreSQL: ", error)
+
     finally:
-        # closing database connection.
+
         if (connection):
             cursor.close()
             connection.close()
