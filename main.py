@@ -17,42 +17,61 @@ DB_entries_broadcast = {"ID broadcast1", "ID broadcast2", "ID broadcast3"}
 currentTable = ""
 
 # ADD / UPDATE broadcast
-def addingBroadcast(id ,name ,etc ,etc2):
+def addingBroadcast(program_id ,tagline,date, duration, image_url):
 
     # CHECK IF ID exist --> Update
 
+
+
     # Otherwise VVV
+    # ADD
+
+    addBroadcastQuery = "INSERT INTO \"public\".\"broadcast\"(\"program\", \"tagline\", " \
+               "\"broadcast_date\", \"duration\", \"image_url\") VALUES({}, \'{}\', " \
+               "\'{}\', {}, \'{}\') RETURNING \"broadcast_id\", \"program\", \"tagline\", " \
+               "\"broadcast_date\", duration, \"image_url\";".format(program_id,tagline,date,duration,image_url)
+
     # SQL
+    performSqlQuery(addBroadcastQuery)
     print("Adding broadcast")
 
 # ADD / UPDATE program
-def addingProgram(id ,name ,etc ,etc2):
+def addingProgram(id , name ,tagline ,email, url, editor):
 
     # CHECK IF ID exist --> Update
 
+
+
     # Otherwise VVV
 
+    addProgramQuery = "INSERT INTO \"public\".\"program\"(\"program_id\", \"name\", \"tagline\", \"email\", \"url\", \"editor\")" \
+                      " VALUES({}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\') RETURNING \"program_id\"" \
+                      ", \"name\", \"tagline\", \"email\", \"url\", \"editor\", \"channel\", \"category\";".format(id,name,tagline,email,url,editor)
+
     # SQL
+    performSqlQuery(addProgramQuery)
     print("Adding program")
 
-def deleteBroadcastWithID(id):
+def deleteFromTableWithID(table, id):
     # SQL HERE
-    print("deleting broadcast with ID")
+    if(table == "broadcast"):
+        res = performSqlQuery("DELETE FROM \"public\".\"broadcast\" WHERE \"broadcast_id\"={};".format(id))
+        print("deleting program with ID: ", id)
+    elif(table == "program"):
+        res = performSqlQuery("DELETE FROM \"public\".\"program\" WHERE \"program_id\"={};".format(id))
+        print("deleting program with ID: ", id)
 
-def deleteProgramWithID(id):
-    # SQL HERE
-    print("deleting program with ID")
-
+    print("Res: ", res)
 
 def parseDBEntries_broadcast():
     global DB_entries_broadcast
-    DB_entries_broadcast = parseDBEntries("broadcast")
+    DB_entries_broadcast = parseDBEntries("broadcast ORDER BY broadcast_id")
     print("parsed broadcasts!")
 
 # fetching programs -> Save in DB_entries_program
 def parseDBEntries_program():
     global DB_entries_program
-    DB_entries_program = parseDBEntries("program")
+    DB_entries_program = parseDBEntries("program ORDER BY program_id")
     print("parsed programs!")
 
 
@@ -61,6 +80,9 @@ def parseDBEntries(table_name):
 
 
 def performSqlQuery(query):
+
+    print("Invoking query: ", query)
+
     try:
         connection = psycopg2.connect(user=DB_config.user,
                                   password=DB_config.password,
@@ -69,11 +91,21 @@ def performSqlQuery(query):
                                   database=DB_config.database)
 
         connection.set_client_encoding('UTF8')
+        print("1")
         cursor = connection.cursor()
+        print("2")
 
         # Print PostgreSQL version
         cursor.execute(query)
+        connection.commit()
+
+        print("3")
+
         record = cursor.fetchall()
+        print("4")
+
+        connection.commit()
+        print("5")
 
         return record
 
@@ -105,29 +137,36 @@ def performAction(*args):
 
         if(radioButtonVal.get() == "add"):
             print("add in ", currentTable)
-            presentPopup("")
+            res = presentPopup("")
+            addingProgram(res[0],res[1],res[2],res[3],res[4],res[5])
 
         if (radioButtonVal.get() == "update"):
             print("update in ", currentTable)
-            presentPopup(DB_entries_program[lbox.curselection()[0]])
+            print(presentPopup(DB_entries_program[lbox.curselection()[0]]))
 
         if (radioButtonVal.get() == "delete"):
             print("Delete in ", currentTable)
-            print("selected: ", DB_entries_program[lbox.curselection()[0]])
+            id = DB_entries_program[lbox.curselection()[0]][0]
+            print("selected: ", id)
+            deleteFromTableWithID(currentTable,id)
 
     elif(currentTable == "broadcast"):
 
         if (radioButtonVal.get() == "add"):
             print("add in ", currentTable)
-            presentPopup("")
+            res = presentPopup("")
+            print("Res: ", res)
+            addingBroadcast(res[0],res[1],res[2],res[3],res[4])
 
         if (radioButtonVal.get() == "update"):
             print("update in ", currentTable)
-            presentPopup(DB_entries_broadcast[lbox.curselection()[0]])
+            print(presentPopup(DB_entries_broadcast[lbox.curselection()[0]]))
 
         if (radioButtonVal.get() == "delete"):
             print("Delete in ", currentTable)
-            print("selected: ", DB_entries_broadcast[lbox.curselection()[0]])
+            id = DB_entries_broadcast[lbox.curselection()[0]][0]
+            print("selected: ", id)
+            deleteFromTableWithID(currentTable, id)
 
 # Perform parse of program in DB and fill table
 def viewProgramInTable(*args):
@@ -187,20 +226,20 @@ def presentPopup(oldEntry):
             fieldValues = multenterbox("ADD PROGRAM", "ADD PROGRAM", programFieldNames)
 
         print(fieldValues)
+        return fieldValues
 
     else:
 
-        broadcastFieldNames = ["Id", "Program", "Tagline", "Date", "Duration", "Image_url"]
+        broadcastFieldNames = ["Program", "Tagline", "Date", "Duration", "Image_url"]
 
         if (oldEntry != ""):
-            fieldValues = [str(oldEntry[0]), str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]),
-                           str(oldEntry[5])]
+            fieldValues = [str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]), str(oldEntry[5])]
             fieldValues = multenterbox("UPDATE BROADCAST", "UPDATE BROADCAST", broadcastFieldNames, fieldValues)
         else:
             fieldValues = multenterbox("ADD BROADCAST", "ADD BROADCAST", broadcastFieldNames)
 
         print(fieldValues)
-    return fieldValues
+        return [str(oldEntry[0]),fieldValues[0],fieldValues[1],fieldValues[2],fieldValues[3],fieldValues[4]]
 
 def setRadioButtonToAdd():
     radioButtonVal.set('add')
@@ -229,7 +268,6 @@ g1 = ttk.Radiobutton(c, text="Delete (selected)", variable=radioButtonVal, value
 g2 = ttk.Radiobutton(c, text="Update (selected)", variable=radioButtonVal, value='update')
 g3 = ttk.Radiobutton(c, text="Add new entry", variable=radioButtonVal, value='add')
 
-# sentlbl = ttk.Label(c, textvariable=sentmsg, anchor='center')
 viewProgramsBtn = ttk.Button(c, text='View Programs', command=viewProgramInTable)
 viewBroadcastsBtn = ttk.Button(c, text='View Broadcasts', command=viewBroadcastInTable)
 send = ttk.Button(c, text='Perform', command=performAction, default='active')
