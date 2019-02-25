@@ -17,7 +17,7 @@ DB_entries_broadcast = {"ID broadcast1", "ID broadcast2", "ID broadcast3"}
 currentTable = ""
 
 # ADD / UPDATE broadcast
-def addingBroadcast(program_id ,tagline,date, duration, image_url):
+def addingBroadcast(id, program_id ,tagline,date, duration, image_url):
 
     # CHECK IF ID exist --> Update
 
@@ -156,7 +156,7 @@ def performAction(*args):
             print("add in ", currentTable)
             res = presentPopup("")
             print("Res: ", res)
-            addingBroadcast(res[0],res[1],res[2],res[3],res[4])
+            addingBroadcast(res[0],res[1],res[2],res[3],res[4],res[5])
 
         if (radioButtonVal.get() == "update"):
             print("update in ", currentTable)
