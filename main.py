@@ -32,14 +32,18 @@ def addingBroadcast(id, program_id ,tagline,date, duration, image_url):
 def updateBroadcast(oldId, id, program_id ,tagline, date, duration, image_url):
     print("updateBroadcast: ", oldId, id, program_id ,tagline,date, duration, image_url)
 
-    updateBroadcastQuery = "SELECT updateBroadcast({},{},{},{},{},{},{})"
+    updateBroadcastQuery = "UPDATE broadcast SET broadcast_id = {}, program = {}, tagline = \'{}\', broadcast_date = \'{}\'," \
+                           " duration = {}, image_url = \'{}\'" \
+                           "WHERE broadcast_id = {}".format(id,program_id,tagline,date,duration,image_url, oldId)
     performSqlQuery(updateBroadcastQuery)
     print("Updated broadcast")
 
 def updateProgram(oldId, id, name, tagline, email, url, editor, channel, category):
     print("updateProgram: ", oldId, id, name, tagline, email, url, editor, channel, category)
 
-    updateProgramQuery = ""
+    updateProgramQuery = "UPDATE program SET program_id = {}, name = \'{}\', tagline = \'{}\', email = \'{}\', url = \'{}\'," \
+                         " editor = \'{}\', channel = {}, category = {}" \
+                         "WHERE program_id = {}".format(id,name,tagline,email,url,editor,channel,category,oldId)
     performSqlQuery(updateProgramQuery)
     print("Updated program")
 
@@ -165,6 +169,7 @@ def performAction(*args):
 
         if (radioButtonVal.get() == "update"):
             print("update in ", currentTable)
+            oldId = DB_entries_broadcast[lbox.curselection()[0]][0]
             res =  presentPopup(DB_entries_broadcast[lbox.curselection()[0]])
             print(res)
             updateBroadcast(oldId, res[0],res[1],res[2],res[3],res[4],res[5])
@@ -200,8 +205,6 @@ def viewBroadcastInTable(*args):
 # Called to change content of table with invoked list
 def updateTableWithList(list):
 
-    print("list[0]", list[0])
-
     lbox.delete(0, 'end')
     for item in list:
         outStr = ""
@@ -235,10 +238,12 @@ def presentPopup(oldEntry):
 
         broadcastFieldNames = ["Program", "Tagline", "Date", "Duration", "Image_url"]
 
+
         if (oldEntry != ""):
             fieldValues = [str(oldEntry[1]), str(oldEntry[2]), str(oldEntry[3]), str(oldEntry[4]), str(oldEntry[5])]
             fieldValues = multenterbox("UPDATE BROADCAST", "UPDATE BROADCAST", broadcastFieldNames, fieldValues)
         else:
+            oldEntry = ['']
             fieldValues = multenterbox("ADD BROADCAST", "ADD BROADCAST", broadcastFieldNames)
 
         print(fieldValues)
